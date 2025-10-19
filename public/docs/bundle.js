@@ -21797,11 +21797,10 @@ function ApiDocs() {
   const [expanded, setExpanded] = (0, import_react.useState)(null);
   return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", { className: "container", children: [
     /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", { children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", { className: "page-title", children: "\u26BD Sport Stats API Docs" }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { className: "subtitle", children: "Interactive documentation for your Express + Supabase API." }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", { className: "page-title", children: " Sport Stats API Docs" }),
       /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", { className: "base-url", children: [
         "Base URL: ",
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("code", { children: "/" })
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("code", { children: "https://statapi.onrender.com" })
       ] })
     ] }),
     endpoints.map((group, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", { children: [
@@ -21833,7 +21832,7 @@ function ApiDocs() {
         ] }, id);
       }) })
     ] }, group.category)),
-    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("footer", { className: "footer", children: "\xA9 2025 Sport Stats API \u2014 Interactive Docs built with React + CSS" })
+    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("footer", { className: "footer", children: "\xA9 2025 Sport Stats API" })
   ] });
 }
 

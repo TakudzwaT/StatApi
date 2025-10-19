@@ -77,7 +77,7 @@ export default function ApiDocs() {
     <main className="container">
       <header>
         <h1 className="page-title">Sport Stats API Docs</h1>
-        <p className="subtitle">Interactive documentation for your Express + Supabase API.</p>
+        <p className="subtitle">Interactive documentation for our Express + Supabase API exposed API</p>
         <p className="base-url">Base URL: <code>https://statapi.onrender.com</code></p>
       </header>
 
