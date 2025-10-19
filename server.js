@@ -2,6 +2,8 @@
 import "dotenv/config";
 
 import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
 import cors from "cors";
 import { createClient } from "@supabase/supabase-js";
 
@@ -21,11 +23,20 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // --- Routes ---
 app.get("/", (req, res) => {
-  res.send("Sport Stats API is running!");
+  res.redirect("/docs");
 });
 
 // Health check
 app.get("/health", (_req, res) => res.json({ ok: true }));
+
+// Serve React-powered docs from public/docs
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const docsDir = path.join(__dirname, "public", "docs");
+app.use("/docs", express.static(docsDir));
+app.get(["/docs", "/docs/*"], (_req, res) => {
+  res.sendFile(path.join(docsDir, "index.html"));
+});
 
 // Get basic team info
 app.get("/teams/:teamId", async (req, res) => {
@@ -40,38 +51,7 @@ app.get("/teams/:teamId", async (req, res) => {
   res.json(data);
 });
 
-// Create team
-app.post("/teams", async (req, res) => {
-  const { id, name, coach_id, logo_url } = req.body || {};
-  if (!id || !name)
-    return res.status(400).json({ error: "id and name are required" });
-  const { data, error } = await supabase
-    .from("teams")
-    .insert({
-      id,
-      name,
-      coach_id: coach_id || null,
-      logo_url: logo_url || null,
-    })
-    .select()
-    .single();
-  if (error) return res.status(500).json({ error: "Failed to create team" });
-  res.status(201).json(data);
-});
-
-// Update team
-app.put("/teams/:teamId", async (req, res) => {
-  const { teamId } = req.params;
-  const { name, coach_id, logo_url } = req.body || {};
-  const { data, error } = await supabase
-    .from("teams")
-    .update({ name, coach_id, logo_url })
-    .eq("id", teamId)
-    .select()
-    .single();
-  if (error) return res.status(500).json({ error: "Failed to update team" });
-  res.json(data);
-});
+// (Mutations removed: only GET endpoints are exposed)
 
 // Get players for a team
 app.get("/teams/:teamId/players", async (req, res) => {
@@ -85,47 +65,7 @@ app.get("/teams/:teamId/players", async (req, res) => {
   res.json(data);
 });
 
-// Create player
-app.post("/teams/:teamId/players", async (req, res) => {
-  const { teamId } = req.params;
-  const { name, position, jersey_num, image_url } = req.body || {};
-  if (!name) return res.status(400).json({ error: "name is required" });
-  const { data, error } = await supabase
-    .from("players")
-    .insert({
-      team_id: teamId,
-      name,
-      position: position || null,
-      jersey_num: jersey_num || null,
-      image_url: image_url || null,
-    })
-    .select()
-    .single();
-  if (error) return res.status(500).json({ error: "Failed to create player" });
-  res.status(201).json(data);
-});
-
-// Update player
-app.put("/players/:playerId", async (req, res) => {
-  const { playerId } = req.params;
-  const { name, position, jersey_num, image_url } = req.body || {};
-  const { data, error } = await supabase
-    .from("players")
-    .update({ name, position, jersey_num, image_url })
-    .eq("id", playerId)
-    .select()
-    .single();
-  if (error) return res.status(500).json({ error: "Failed to update player" });
-  res.json(data);
-});
-
-// Delete player
-app.delete("/players/:playerId", async (req, res) => {
-  const { playerId } = req.params;
-  const { error } = await supabase.from("players").delete().eq("id", playerId);
-  if (error) return res.status(500).json({ error: "Failed to delete player" });
-  res.status(204).send();
-});
+// (Player create/update/delete removed)
 
 // Get matches
 app.get("/teams/:teamId/matches", async (req, res) => {
@@ -139,81 +79,22 @@ app.get("/teams/:teamId/matches", async (req, res) => {
   res.json(data);
 });
 
-// Create match
-app.post("/teams/:teamId/matches", async (req, res) => {
-  const { teamId } = req.params;
-  const {
-    opponent_name,
-    team_score = 0,
-    opponent_score = 0,
-    date,
-    status = "scheduled",
-    ...stats
-  } = req.body || {};
-  if (!opponent_name || !date)
-    return res
-      .status(400)
-      .json({ error: "opponent_name and date are required" });
-  const payload = {
-    team_id: teamId,
-    opponent_name,
-    team_score,
-    opponent_score,
-    date,
-    status,
-    ...stats,
-  };
-  const { data, error } = await supabase
-    .from("matches")
-    .insert(payload)
-    .select()
-    .single();
-  if (error) return res.status(500).json({ error: "Failed to create match" });
-  res.status(201).json(data);
-});
+// (Match creation removed)
 
-// Update match
-app.put("/matches/:matchId", async (req, res) => {
-  const { matchId } = req.params;
-  const allowed = [
-    "opponent_name",
-    "team_score",
-    "opponent_score",
-    "date",
-    "status",
-    "possession",
-    "shots",
-    "shots_on_target",
-    "corners",
-    "fouls",
-    "offsides",
-    "xg",
-    "passes",
-    "pass_accuracy",
-    "tackles",
-    "saves",
-  ];
-  const body = req.body || {};
-  const update = Object.fromEntries(
-    Object.entries(body).filter(([k]) => allowed.includes(k))
-  );
+
+// Get all teams
+app.get("/teams", async (req, res) => {
   const { data, error } = await supabase
-    .from("matches")
-    .update(update)
-    .eq("id", matchId)
-    .select()
-    .single();
-  if (error) return res.status(500).json({ error: "Failed to update match" });
+    .from("teams")
+    .select("*")
+    .order("name", { ascending: true }); // optional sorting by name
+
+  if (error) return res.status(500).json({ error: "Failed to fetch teams" });
   res.json(data);
 });
 
-// Delete match
-app.delete("/matches/:matchId", async (req, res) => {
-  const { matchId } = req.params;
-  const { error } = await supabase.from("matches").delete().eq("id", matchId);
-  if (error) return res.status(500).json({ error: "Failed to delete match" });
-  res.status(204).send();
-});
+
+// (Match update/delete removed)
 
 // Get match events
 app.get("/matches/:matchId/events", async (req, res) => {
@@ -227,38 +108,7 @@ app.get("/matches/:matchId/events", async (req, res) => {
   res.json(data);
 });
 
-// Create match event
-app.post("/matches/:matchId/events", async (req, res) => {
-  const { matchId } = req.params;
-  const { player_id, event_type, minute } = req.body || {};
-  if (!player_id || !event_type)
-    return res
-      .status(400)
-      .json({ error: "player_id and event_type are required" });
-  const { data, error } = await supabase
-    .from("match_events")
-    .insert({
-      match_id: matchId,
-      player_id,
-      event_type,
-      minute: minute ?? null,
-    })
-    .select()
-    .single();
-  if (error) return res.status(500).json({ error: "Failed to create event" });
-  res.status(201).json(data);
-});
-
-// Delete match event
-app.delete("/events/:eventId", async (req, res) => {
-  const { eventId } = req.params;
-  const { error } = await supabase
-    .from("match_events")
-    .delete()
-    .eq("id", eventId);
-  if (error) return res.status(500).json({ error: "Failed to delete event" });
-  res.status(204).send();
-});
+// (Match event create/delete removed)
 
 // Team summary stats
 app.get("/teams/:teamId/summary", async (req, res) => {
@@ -305,12 +155,58 @@ app.get("/teams/:teamId/summary", async (req, res) => {
   delete summary._paSum;
   res.json(summary);
 });
+// --- Player Stats API ---
+
+// Get all stats for a player
+app.get("/players/:playerId/stats", async (req, res) => {
+    const { playerId } = req.params;
+    const { data, error } = await supabase
+        .from("player_stats")
+        .select("*")
+        .eq("player_id", playerId)
+        .order("created_at", { ascending: false });
+
+    if (error) return res.status(500).json({ error: "Failed to fetch player stats" });
+    res.json(data);
+});
+
+app.get("/players", async (req, res) => {
+  const { data, error } = await supabase
+    .from("players")
+    .select("*")
+    .order("name", { ascending: true }); // optional sorting by name
+
+  if (error) return res.status(500).json({ error: "Failed to fetch playes" });
+  res.json(data);
+});
+
+// Get all stats for a specific match
+app.get("/matches/:matchId/stats", async (req, res) => {
+    const { matchId } = req.params;
+    const { data, error } = await supabase
+        .from("player_stats")
+        .select("*")
+        .eq("match_id", matchId)
+        .order("created_at", { ascending: false });
+
+    if (error) return res.status(500).json({ error: "Failed to fetch match stats" });
+    res.json(data);
+});
+
+
+
+
+
+
+
+
+
 
 // Start server
 const port = process.env.PORT || 4000;
 if (process.env.NODE_ENV !== "test") {
   app.listen(port, () => {
-    console.log(`API listening at http://localhost:${port}`);
+    console.log(` API listening at http://localhost:${port}`);
   });
 }
 
