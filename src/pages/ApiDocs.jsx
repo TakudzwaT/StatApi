@@ -76,9 +76,9 @@ export default function ApiDocs() {
   return (
     <main className="container">
       <header>
-        <h1 className="page-title">⚽ Sport Stats API Docs</h1>
+        <h1 className="page-title">Sport Stats API Docs</h1>
         <p className="subtitle">Interactive documentation for your Express + Supabase API.</p>
-        <p className="base-url">Base URL: <code>/</code></p>
+        <p className="base-url">Base URL: <code>https://statapi.onrender.com</code></p>
       </header>
 
       {endpoints.map((group, i) => (
@@ -122,7 +122,7 @@ export default function ApiDocs() {
       {/* interactive try-out removed */}
 
       <footer className="footer">
-        © 2025 Sport Stats API — Interactive Docs built with React + CSS
+        © 2025 Sport Stats API
       </footer>
     </main>
   );
